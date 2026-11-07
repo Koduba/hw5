@@ -1,0 +1,22 @@
+# secrets
+.env
+.env.*
+!.env.example
+frontend/.env.local
+
+# python
+.venv
+.venv*/
+__pycache__/
+*.py[cod]
+
+# node / vite
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.vite/
+
+# temp + OS
+*.tmp
+*.db-journal
+.DS_Store

@@ -1,0 +1,200 @@
+{
+  "requested_by_prompt": "lets test each of your three MCP tools. Save the evidence in output/mcp_smoke.json. For every tool, include the prompt I asked, the tool name, the tool output must match values in data/campus_customs_new.db.",
+  "run_at": "2026-11-07T11:57:51-05:00",
+  "transport": "stdio via .mcp.json (server: campus-customs)",
+  "database": "data/campus_customs_new.db",
+  "tools_listed_by_server": [
+    "check_margin",
+    "check_stock",
+    "decide_approval",
+    "get_cash_position",
+    "get_lease",
+    "get_ticket",
+    "get_vendor_status",
+    "list_approvals",
+    "list_board",
+    "list_inventory",
+    "list_open_invoices",
+    "list_open_tickets",
+    "list_out_of_stock",
+    "list_payments",
+    "list_tickets",
+    "list_vendors",
+    "pay_approved_request",
+    "place_approved_purchase_order",
+    "post_draft",
+    "request_discount",
+    "request_payment",
+    "request_purchase_order",
+    "reset_working_db",
+    "update_ticket"
+  ],
+  "all_match": true,
+  "tests": [
+    {
+      "tickets": [
+        101,
+        102,
+        103
+      ],
+      "prompt": "Which tickets are open on the board right now, and what is the shop's date?",
+      "tool": "list_open_tickets",
+      "arguments": {},
+      "tool_output": {
+        "shop_date": "2026-08-31",
+        "tickets": []
+      },
+      "db_check": {
+        "queries": [
+          "SELECT date_today FROM desk",
+          "SELECT * FROM tickets WHERE status != 'resolved' ORDER BY created_at"
+        ],
+        "expected_from_db": {
+          "shop_date": "2026-08-31",
+          "tickets": []
+        },
+        "match": true
+      }
+    },
+    {
+      "tickets": [
+        101
+      ],
+      "prompt": "Ticket 101: do we have a Classic Bulldog Tee (CC-TEE-WHITE) in size S on the shelf?",
+      "tool": "check_stock",
+      "arguments": {
+        "sku": "CC-TEE-WHITE",
+        "size": "S"
+      },
+      "tool_output": {
+        "sku": "CC-TEE-WHITE",
+        "stock": [
+          {
+            "sku": "CC-TEE-WHITE",
+            "name": "Classic Bulldog Tee",
+            "size": "S",
+            "qty": 0,
+            "location": "Aisle B"
+          }
+        ],
+        "pricing": {
+          "unit_cost": 8.0,
+          "list_price": 28.0
+        }
+      },
+      "db_check": {
+        "queries": [
+          "SELECT sku, name, size, qty, location FROM inventory WHERE sku = 'CC-TEE-WHITE' AND size = 'S'",
+          "SELECT unit_cost, list_price FROM pricing WHERE sku = 'CC-TEE-WHITE'"
+        ],
+        "expected_from_db": {
+          "sku": "CC-TEE-WHITE",
+          "stock": [
+            {
+              "sku": "CC-TEE-WHITE",
+              "name": "Classic Bulldog Tee",
+              "size": "S",
+              "qty": 0,
+              "location": "Aisle B"
+            }
+          ],
+          "pricing": {
+            "unit_cost": 8.0,
+            "list_price": 28.0
+          }
+        },
+        "match": true
+      }
+    },
+    {
+      "tickets": [
+        103
+      ],
+      "prompt": "Ticket 103: how many navy hoodies (CC-HOOD-NAVY) in size M do we have for the Yale AI Club's 20, and what do they cost us?",
+      "tool": "check_stock",
+      "arguments": {
+        "sku": "CC-HOOD-NAVY",
+        "size": "M"
+      },
+      "tool_output": {
+        "sku": "CC-HOOD-NAVY",
+        "stock": [
+          {
+            "sku": "CC-HOOD-NAVY",
+            "name": "Basic Hoodie Big Yale",
+            "size": "M",
+            "qty": 8,
+            "location": "Aisle A"
+          }
+        ],
+        "pricing": {
+          "unit_cost": 22.0,
+          "list_price": 58.0
+        }
+      },
+      "db_check": {
+        "queries": [
+          "SELECT sku, name, size, qty, location FROM inventory WHERE sku = 'CC-HOOD-NAVY' AND size = 'M'",
+          "SELECT unit_cost, list_price FROM pricing WHERE sku = 'CC-HOOD-NAVY'"
+        ],
+        "expected_from_db": {
+          "sku": "CC-HOOD-NAVY",
+          "stock": [
+            {
+              "sku": "CC-HOOD-NAVY",
+              "name": "Basic Hoodie Big Yale",
+              "size": "M",
+              "qty": 8,
+              "location": "Aisle A"
+            }
+          ],
+          "pricing": {
+            "unit_cost": 22.0,
+            "list_price": 58.0
+          }
+        },
+        "match": true
+      }
+    },
+    {
+      "tickets": [
+        101,
+        103
+      ],
+      "prompt": "Can Bulldog Print Co (vendor 1) restock apparel right now, or do we owe them money?",
+      "tool": "get_vendor_status",
+      "arguments": {
+        "vendor_id": 1
+      },
+      "tool_output": {
+        "shop_date": "2026-08-31",
+        "vendor": {
+          "id": 1,
+          "name": "Bulldog Print Co",
+          "specialty": "apparel reprint",
+          "lead_days": 5
+        },
+        "open_invoices": [],
+        "will_ship": true
+      },
+      "db_check": {
+        "queries": [
+          "SELECT * FROM vendors WHERE id = 1",
+          "SELECT i.*, CAST(julianday(d.date_today) - julianday(i.due_date) AS INTEGER) AS days_overdue FROM invoices i, desk d WHERE i.vendor_id = 1 AND i.status = 'open' ORDER BY i.due_date"
+        ],
+        "expected_from_db": {
+          "shop_date": "2026-08-31",
+          "vendor": {
+            "id": 1,
+            "name": "Bulldog Print Co",
+            "specialty": "apparel reprint",
+            "lead_days": 5
+          },
+          "open_invoices": [],
+          "will_ship": true
+        },
+        "match": true
+      }
+    }
+  ]
+}

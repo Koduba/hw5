@@ -1,0 +1,8 @@
+# HW5 Campus Customs: one environment for the MCP server, agents and backend (Python 3.12).
+# pydantic-ai-slim, not the full pydantic-ai. The [mcp] extra is a deliberate addition:
+# the agents need MCPToolset to call our MCP server.
+pydantic-ai-slim[openai,mcp]
+fastmcp
+fastapi
+uvicorn[standard]
+python-dotenv
